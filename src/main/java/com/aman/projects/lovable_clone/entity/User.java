@@ -22,5 +22,6 @@ public class User {
      String avatarUrl;
      Instant createdAt;
      Instant updatedAt;
-     Instant deletedAt;
+
+     Instant deletedAt;//soft delete->if deletedAt is null it means user is not deleted, if deletedAt is not null it means user is deleted and can be found when was the user deleted
 }
