@@ -6,23 +6,20 @@ import lombok.Setter;
 import lombok.experimental.FieldDefaults;
 
 import java.time.Instant;
-
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProjectFile {
-
-    Long id;
+public class ChatSession {
 
     Project project;
 
-    String path;
+    User user;
 
-    String minioObjectKey;
+    String title;
+
 
     Instant createdAt;
     Instant updatedAt;
 
-    User createdBy;
-    User updatedBy;
+    Instant deletedAt;
 }

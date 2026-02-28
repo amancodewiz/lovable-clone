@@ -10,19 +10,15 @@ import java.time.Instant;
 @Getter
 @Setter
 @FieldDefaults(level = AccessLevel.PRIVATE)
-public class ProjectFile {
-
+public class UsageLog {
     Long id;
-
+    User user;
     Project project;
+    String action;
+    Integer tokensUsed;
+    Integer durationMs;
 
-    String path;
+    String metaData; //JSON of {model_used, prompt_used
 
-    String minioObjectKey;
-
-    Instant createdAt;
-    Instant updatedAt;
-
-    User createdBy;
-    User updatedBy;
+    Integer createdAt;
 }
