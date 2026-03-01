@@ -27,6 +27,7 @@ public class FileController {
 
     @GetMapping("/{*path}")
     //Why * => src/hooks/AppHook.jsx
+    //This api hits when there is something after the files path
     public ResponseEntity<FileContentResponse> getFile(
             @PathVariable Long projectId,
             @PathVariable String path
