@@ -2,9 +2,9 @@ package com.aman.projects.lovable_clone.dto.subscription;
 
 //Tokens used today
 public record UsageTodayResponse(
-        int tokensUsed,
-        int tokensLimit,
-        int previewsRunning,
-        int previewsLimit
+        Integer tokensUsed,
+        Integer tokensLimit,
+        Integer previewsRunning,
+        Integer previewsLimit
 ) {
 }
