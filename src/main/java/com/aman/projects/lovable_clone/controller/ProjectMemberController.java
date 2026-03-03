@@ -3,6 +3,7 @@ package com.aman.projects.lovable_clone.controller;
 
 import com.aman.projects.lovable_clone.dto.member.InviteMemberRequest;
 import com.aman.projects.lovable_clone.dto.member.MemberResponse;
+import com.aman.projects.lovable_clone.dto.member.UpdateMemberRoleRequest;
 import com.aman.projects.lovable_clone.service.ProjectMemberService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
@@ -47,7 +48,7 @@ public class ProjectMemberController {
     public ResponseEntity<MemberResponse> updateMemberRole(
         @PathVariable Long projectId,
         @PathVariable Long memberId,
-        @RequestBody InviteMemberRequest request
+        @RequestBody UpdateMemberRoleRequest request
 
     ){
         Long userId=1L;
