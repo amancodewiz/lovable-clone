@@ -15,7 +15,7 @@ import java.time.Instant;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-@Table(name="projects")
+@Table(name = "projects")
 public class Project {
 
     @Id
@@ -27,11 +27,11 @@ public class Project {
 
     @ManyToOne
     //Many Project(class) to one owner
-    @JoinColumn(name="owner_id", nullable = false)
+    @JoinColumn(name = "owner_id", nullable = false)
     //nullable = false: Whenever you create a project an owner has to be defined
     User owner;
 
-    Boolean isPublic=false;
+    Boolean isPublic = false;
 
     @CreationTimestamp
     Instant createdAt;

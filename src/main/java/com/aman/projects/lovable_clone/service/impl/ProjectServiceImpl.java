@@ -13,8 +13,9 @@ import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
 import java.util.List;
 
 
@@ -30,8 +31,8 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse createProject(ProjectRequest request, Long userId) {
-        User owner= userRepository.findById(userId).orElseThrow();
-        Project project=Project.builder()
+        User owner = userRepository.findById(userId).orElseThrow();
+        Project project = Project.builder()
                 .name(request.name())
                 .owner(owner)
                 .isPublic(false)
@@ -50,23 +51,56 @@ public class ProjectServiceImpl implements ProjectService {
                 .map(projectMapper::toProjectSummaryResponse)
                 .collect(Collectors.toList());
    */
-    var projects=projectRepository.findAllAccessibleByUser(userId);
-    return projectMapper.toListOfProjectSummaryResponse(projects);
+        var projects = projectRepository.findAllAccessibleByUser(userId);
+        return projectMapper.toListOfProjectSummaryResponse(projects);
 
     }
 
     @Override
     public ProjectResponse getProjectById(Long id, Long userId) {
-        return null;
+        Project project = getAccessibleProjectById(id, userId);
+        return projectMapper.toProjectResponse(project);
     }
 
     @Override
     public ProjectResponse updateProject(Long id, ProjectRequest request, Long userId) {
-        return null;
+        Project project = getAccessibleProjectById(id, userId);
+
+        if (!project.getOwner().getId().equals(userId))
+        //owner != user → deny
+        {
+            //Only allow them to delete the project if they are the owner
+            throw new RuntimeException("You are not allowed to allowed to update");
+        }
+
+        if (request.name() != null) {
+            project.setName(request.name());
+        }
+
+        project = projectRepository.save(project);
+
+        return projectMapper.toProjectResponse(project);
     }
 
     @Override
     public void softDelete(Long id, Long userId) {
+        Project project = getAccessibleProjectById(id, userId);
 
+        if (!project.getOwner().getId().equals(userId))
+        //owner != user → deny
+        {
+            //Only allow them to delete the project if they are the owner
+            throw new RuntimeException("You are not allowed to delete this project");
+        }
+        project.setDeletedAt(Instant.now());
+        projectRepository.save(project);
+    }
+
+    /// INTERNAL FUNCTION
+    /// Instead of writing the below line again and again we created an internal function and we will only have to call this internal function everywhere
+    /// Project project = projectRepository.findAccessibleProjectById(id, userId).orElseThrow();->Project project = getAccessibleProjectById(id, userId);
+    /// Made our code dry using this technique
+    public Project getAccessibleProjectById(Long projectId, Long userId) {
+        return projectRepository.findAccessibleProjectById(projectId, userId).orElseThrow();
     }
 }
