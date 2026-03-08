@@ -12,6 +12,7 @@ import com.aman.projects.lovable_clone.repository.ProjectMemberRepository;
 import com.aman.projects.lovable_clone.repository.ProjectRepository;
 import com.aman.projects.lovable_clone.repository.UserRepository;
 import com.aman.projects.lovable_clone.service.ProjectMemberService;
+import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,7 +24,8 @@ import java.util.List;
 
 @Service
 @FieldDefaults(level = AccessLevel.PRIVATE, makeFinal = true)
-@RequiredArgsConstructor(access = AccessLevel.PRIVATE)
+@RequiredArgsConstructor
+@Transactional
 public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     ProjectMemberRepository projectMemberRepository;
@@ -81,7 +83,21 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
 
     @Override
     public MemberResponse updateMemberRole(Long projectId, Long memberId, UpdateMemberRoleRequest request, Long userId) {
-        return null;
+        Project project = getAccessibleProjectById(projectId, userId);//getting all the projects
+
+        if (!project.getOwner().getId().equals(userId)) {
+            throw new RuntimeException("Only owner can update roles");
+        }
+
+        ProjectMemberId projectMemberId = new ProjectMemberId(projectId, memberId);
+
+        ProjectMember projectMember = projectMemberRepository.findById(projectMemberId).orElseThrow();//This will find the particular project member
+
+        projectMember.setProjectRole(request.role());
+
+        projectMemberRepository.save(projectMember);
+
+        return projectMemberMapper.toProjectMemberResponseFromMember(projectMember);
     }
 
     @Override
