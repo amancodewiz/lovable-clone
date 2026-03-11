@@ -4,6 +4,8 @@ package com.aman.projects.lovable_clone.entity;
 import jakarta.persistence.*;
 import lombok.*;
 import lombok.experimental.FieldDefaults;
+import org.hibernate.annotations.CreationTimestamp;
+import org.hibernate.annotations.UpdateTimestamp;
 
 import java.time.Instant;
 
@@ -22,12 +24,14 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
      Long id;
 
-     String email;
-     String passwordHash;
+     String username;
+     String password;
      String name;
 
-     String avatarUrl;
+     @CreationTimestamp
      Instant createdAt;
+
+     @UpdateTimestamp
      Instant updatedAt;
 
      Instant deletedAt;//soft delete->if deletedAt is null it means user is not deleted, if deletedAt is not null it means user is deleted and can be found when was the user deleted
