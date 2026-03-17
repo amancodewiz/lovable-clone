@@ -37,9 +37,11 @@ public class ProjectServiceImpl implements ProjectService {
 
     @Override
     public ProjectResponse createProject(ProjectRequest request, Long userId) {
-        User owner = userRepository.findById(userId).orElseThrow(
-                ()-> new ResourceNotFoundException("User", userId.toString())
-        );
+        User owner = userRepository.findById(userId)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "User not found with id: " + userId,
+                        "USER"
+                ));
         Project project = Project.builder()
                 .name(request.name())
                 .isPublic(false)
@@ -102,8 +104,10 @@ public class ProjectServiceImpl implements ProjectService {
     /// Project project = projectRepository.findAccessibleProjectById(id, userId).orElseThrow();->Project project = getAccessibleProjectById(id, userId);
     /// Made our code dry using this technique
     public Project getAccessibleProjectById(Long projectId, Long userId) {
-        //Here we Passed both arguments separately.
         return projectRepository.findAccessibleProjectById(projectId, userId)
-                .orElseThrow(() -> new ResourceNotFoundException("Project", projectId.toString()));
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Project not found with id: " + projectId,
+                        "PROJECT"
+                ));
     }
 }
