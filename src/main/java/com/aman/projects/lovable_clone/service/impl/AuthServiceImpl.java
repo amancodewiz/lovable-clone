@@ -35,8 +35,10 @@ public class AuthServiceImpl implements AuthService {
                     throw new BadRequestException("User already exists with username:" + request.username());
                 });
 
-        User user = userMapper.toEntity(request);
-        user.setPassword(passwordEncoder.encode(user.getPassword()));
+        User user = new User();
+        user.setUsername(request.username());
+        user.setName(request.name());
+        user.setPassword(passwordEncoder.encode(request.password()));
         user=userRepository.save(user);
 
         String token=authUtil.generateAccessToken(user);

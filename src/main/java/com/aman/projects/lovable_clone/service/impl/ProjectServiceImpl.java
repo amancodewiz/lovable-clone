@@ -13,11 +13,13 @@ import com.aman.projects.lovable_clone.mapper.ProjectMapper;
 import com.aman.projects.lovable_clone.repository.ProjectMemberRepository;
 import com.aman.projects.lovable_clone.repository.ProjectRepository;
 import com.aman.projects.lovable_clone.repository.UserRepository;
+import com.aman.projects.lovable_clone.security.AuthUtil;
 import com.aman.projects.lovable_clone.service.ProjectService;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -34,14 +36,22 @@ public class ProjectServiceImpl implements ProjectService {
     UserRepository userRepository;
     ProjectMapper projectMapper;
     ProjectMemberRepository projectMemberRepository;
+    AuthUtil authUtil;
+
 
     @Override
-    public ProjectResponse createProject(ProjectRequest request, Long userId) {
-        User owner = userRepository.findById(userId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "User not found with id: " + userId,
-                        "USER"
-                ));
+    public ProjectResponse createProject(ProjectRequest request) {
+        Long userId = authUtil.getCurrentUserId();
+//        User owner = userRepository.findById(userId)
+//                .orElseThrow(() -> new ResourceNotFoundException(
+//                        "User not found with id: " + userId,
+//                        "USER"
+//                ));
+
+        //the above commented part will make a db call while the below will not make a db call
+        //Below creates a hibernate proxy object, also it should be inside @Transactional context
+        User owner=userRepository.getReferenceById(userId);
+
         Project project = Project.builder()
                 .name(request.name())
                 .isPublic(false)
@@ -65,22 +75,26 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public List<ProjectSummaryResponse> getUserProjects(Long userId) {
-
+    public List<ProjectSummaryResponse> getUserProjects() {
+        Long userId = authUtil.getCurrentUserId();
         var projects = projectRepository.findAllAccessibleByUser(userId);
         return projectMapper.toListOfProjectSummaryResponse(projects);
 
     }
 
     @Override
-    public ProjectResponse getProjectById(Long id, Long userId) {
-        Project project = getAccessibleProjectById(id, userId);
+    @PreAuthorize("@Security.canViewProject(#projectId)")
+    public ProjectResponse getUserProjectById(Long projectId) {
+        Long userId = authUtil.getCurrentUserId();
+        Project project = getAccessibleProjectById(projectId, userId);
         return projectMapper.toProjectResponse(project);
     }
 
     @Override
-    public ProjectResponse updateProject(Long id, ProjectRequest request, Long userId) {
-        Project project = getAccessibleProjectById(id, userId);
+    @PreAuthorize("@Security.canEditProject(#projectId)")
+    public ProjectResponse updateProject(Long projectId, ProjectRequest request) {
+        Long userId = authUtil.getCurrentUserId();
+        Project project = getAccessibleProjectById(projectId, userId);
 
         if (request.name() != null) {
             project.setName(request.name());
@@ -92,8 +106,10 @@ public class ProjectServiceImpl implements ProjectService {
     }
 
     @Override
-    public void softDelete(Long id, Long userId) {
-        Project project = getAccessibleProjectById(id, userId);
+    @PreAuthorize("@Security.canDeleteProject(#projectId)")
+    public void softDelete(Long projectId) {
+        Long userId = authUtil.getCurrentUserId();
+        Project project = getAccessibleProjectById(projectId, userId);
 
         project.setDeletedAt(Instant.now());
         projectRepository.save(project);

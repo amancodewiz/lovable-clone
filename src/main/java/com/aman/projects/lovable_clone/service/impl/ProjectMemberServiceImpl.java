@@ -11,11 +11,13 @@ import com.aman.projects.lovable_clone.mapper.ProjectMemberMapper;
 import com.aman.projects.lovable_clone.repository.ProjectMemberRepository;
 import com.aman.projects.lovable_clone.repository.ProjectRepository;
 import com.aman.projects.lovable_clone.repository.UserRepository;
+import com.aman.projects.lovable_clone.security.AuthUtil;
 import com.aman.projects.lovable_clone.service.ProjectMemberService;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Service;
 
 import java.time.Instant;
@@ -32,9 +34,12 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     ProjectRepository projectRepository;
     ProjectMemberMapper projectMemberMapper;
     UserRepository userRepository;
+    AuthUtil authUtil;
 
     @Override
-    public List<MemberResponse> getProjectMembers(Long projectId, Long userId) {
+    @PreAuthorize("@Security.canViewMembers(#projectId)")
+    public List<MemberResponse> getProjectMembers(Long projectId) {
+        Long userId = authUtil.getCurrentUserId();
         Project project = getAccessibleProjectById(projectId, userId);
 
         return projectMemberRepository.findByIdProjectId(projectId)
@@ -44,7 +49,9 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
-    public MemberResponse inviteMember(Long projectId, InviteMemberRequest request, Long userId) {
+    @PreAuthorize("@Security.canManageMembers(#projectId)")
+    public MemberResponse inviteMember(Long projectId, InviteMemberRequest request) {
+        Long userId = authUtil.getCurrentUserId();
         Project project = getAccessibleProjectById(projectId, userId);//getting all the projects
 
         User invitee = userRepository.findByUsername(request.username()).orElseThrow();
@@ -58,6 +65,7 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
         if (projectMemberRepository.existsById(projectMemberId)) {
             throw new RuntimeException("Already invited cannot invite again");
         }
+
         //Create the member, save the member and you have invited a new person to your project
         ProjectMember member = ProjectMember.builder()
                 .id(projectMemberId)
@@ -73,7 +81,9 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
-    public MemberResponse updateMemberRole(Long projectId, Long memberId, UpdateMemberRoleRequest request, Long userId) {
+    @PreAuthorize("@Security.canManageMembers(#projectId)")
+    public MemberResponse updateMemberRole(Long projectId, Long memberId, UpdateMemberRoleRequest request) {
+        Long userId = authUtil.getCurrentUserId();
         Project project = getAccessibleProjectById(projectId, userId);//getting all the projects
 
         ProjectMemberId projectMemberId = new ProjectMemberId(projectId, memberId);
@@ -88,7 +98,9 @@ public class ProjectMemberServiceImpl implements ProjectMemberService {
     }
 
     @Override
-    public void removeProjectMember(Long projectId, Long memberId, Long userId) {
+    @PreAuthorize("@Security.canManageMembers(#projectId)")
+    public void removeProjectMember(Long projectId, Long memberId) {
+        Long userId = authUtil.getCurrentUserId();
         Project project = getAccessibleProjectById(projectId, userId);//getting all the projects
 
         //Below 2 lines checks if the project member exists
